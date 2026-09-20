@@ -235,7 +235,7 @@ class TmuxClient {
     const bufferName = `awm-${process.pid}-${crypto.randomBytes(6).toString('hex')}`;
     await this.pipeInput(['load-buffer', '-b', bufferName, '-'], text);
     try {
-      await this.run(['paste-buffer', '-d', '-b', bufferName, '-t', paneId]);
+      await this.run(['paste-buffer', '-d', '-p', '-b', bufferName, '-t', paneId]);
     } catch (error) {
       this.run(['delete-buffer', '-b', bufferName]).catch(() => {});
       throw error;

@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   FIELD_SEPARATOR,
+  TmuxClient,
   isCodexActionRequired,
   isPaneId,
   isSessionId,
@@ -65,4 +66,29 @@ test('parsePaneRows creates a session/window/pane hierarchy', () => {
 
 test('parsePaneRows ignores malformed rows', () => {
   assert.deepEqual(parsePaneRows('garbage\n'), []);
+});
+
+test('sendText uses bracketed paste for applications that request it', async () => {
+  const client = new TmuxClient();
+  const calls = [];
+
+  client.pipeInput = async (args, input) => {
+    calls.push({ method: 'pipeInput', args, input });
+  };
+  client.run = async (args) => {
+    calls.push({ method: 'run', args });
+  };
+
+  await client.sendText('%7', 'first line\nsecond line');
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].method, 'pipeInput');
+  assert.deepEqual(calls[0].args.slice(0, 3), ['load-buffer', '-b', calls[0].args[2]]);
+  assert.match(calls[0].args[2], /^awm-\d+-[0-9a-f]{12}$/);
+  assert.equal(calls[0].args[3], '-');
+  assert.equal(calls[0].input, 'first line\nsecond line');
+  assert.deepEqual(calls[1], {
+    method: 'run',
+    args: ['paste-buffer', '-d', '-p', '-b', calls[0].args[2], '-t', '%7']
+  });
 });

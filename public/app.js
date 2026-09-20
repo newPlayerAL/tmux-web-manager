@@ -1,8 +1,10 @@
 'use strict';
 
 const FONT_SIZES = [14, 16, 18, 20, 22, 24];
+const HISTORY_LINE_OPTIONS = ['0', '200', '1000', '5000'];
 const ACTIVITY_BUSY_MS = 10000;
 const storedFontSize = Number.parseInt(localStorage.getItem('fontSize') || '', 10);
+const storedHistoryLines = localStorage.getItem('historyLines');
 const initialLanguage = document.documentElement.lang === 'en' ? 'en' : 'zh-CN';
 
 const TRANSLATIONS = {
@@ -176,6 +178,7 @@ const state = {
   theme: localStorage.getItem('theme') === 'dark' ? 'dark' : 'light',
   language: initialLanguage,
   fontSize: FONT_SIZES.includes(storedFontSize) ? storedFontSize : 16,
+  historyLines: HISTORY_LINE_OPTIONS.includes(storedHistoryLines) ? storedHistoryLines : '0',
   pollInterval: 750,
   captureTimer: null,
   sessionTimer: null,
@@ -284,6 +287,18 @@ function changeFontSize(direction) {
 }
 
 applyFontSize(state.fontSize);
+
+function applyHistoryLines(historyLines, refresh = false) {
+  state.historyLines = HISTORY_LINE_OPTIONS.includes(historyLines) ? historyLines : '0';
+  elements.historyLines.value = state.historyLines;
+  localStorage.setItem('historyLines', state.historyLines);
+  if (refresh) {
+    state.captureText = '';
+    capturePane();
+  }
+}
+
+applyHistoryLines(state.historyLines);
 
 function headers(json = false) {
   const value = {};
@@ -543,7 +558,7 @@ async function capturePane() {
   state.captureInFlight = true;
   const selectedWhenStarted = state.selectedPaneId;
   try {
-    const history = elements.historyLines.value;
+    const history = state.historyLines;
     const data = await api(`/api/panes/${encodeURIComponent(selectedWhenStarted)}/capture?history=${history}`);
     if (selectedWhenStarted !== state.selectedPaneId) return;
     const nearBottom = elements.terminalWrap.scrollHeight - elements.terminalWrap.scrollTop - elements.terminalWrap.clientHeight < 80;
@@ -622,7 +637,7 @@ elements.languageSelect.addEventListener('change', () => applyLanguage(elements.
 elements.themeSelect.addEventListener('change', () => applyTheme(elements.themeSelect.value));
 elements.fontDecrease.addEventListener('click', () => changeFontSize(-1));
 elements.fontIncrease.addEventListener('click', () => changeFontSize(1));
-elements.historyLines.addEventListener('change', () => { state.captureText = ''; capturePane(); });
+elements.historyLines.addEventListener('change', () => applyHistoryLines(elements.historyLines.value, true));
 elements.openSidebar.addEventListener('click', () => elements.sidebar.classList.add('open'));
 elements.closeSidebar.addEventListener('click', () => elements.sidebar.classList.remove('open'));
 elements.sendInput.addEventListener('click', () => sendText(true));
