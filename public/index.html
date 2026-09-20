@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>tmux deck</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <header class="brand-row">
+          <div>
+            <div class="brand"><span class="brand-mark">›_</span> tmux deck</div>
+            <div class="eyebrow" data-i18n="tagline">本机会话控制台</div>
+          </div>
+          <button class="icon-button mobile-only" id="closeSidebar" title="关闭会话列表" data-i18n-title="closeSessionList" data-i18n-aria-label="closeSessionList">×</button>
+        </header>
+
+        <div class="sidebar-tools">
+          <span id="sessionCount" data-i18n="connectingEllipsis">正在连接…</span>
+          <div class="sidebar-actions">
+            <button class="text-button" id="newSession" data-i18n="newSession">新建</button>
+            <button class="text-button" id="refreshSessions" data-i18n="refresh">刷新</button>
+          </div>
+        </div>
+        <nav class="session-list" id="sessionList" aria-label="tmux 会话" data-i18n-aria-label="sessionList"></nav>
+        <footer class="sidebar-footer">
+          <div class="connection-status">
+            <span class="status-dot" id="connectionDot"></span>
+            <span id="connectionLabel" data-i18n="connecting">连接中</span>
+          </div>
+          <div class="language-control">
+            <label for="languageSelect" data-i18n="language">🌐 语言 / Language</label>
+            <select id="languageSelect" title="选择界面语言" data-i18n-title="chooseLanguage">
+              <option value="zh-CN">中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </footer>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <button class="icon-button mobile-only" id="openSidebar" title="打开会话列表" data-i18n-title="openSessionList" data-i18n-aria-label="openSessionList">☰</button>
+          <div class="pane-heading">
+            <div class="pane-path" id="panePath" data-i18n="selectPane">选择一个 tmux 窗格</div>
+            <div class="pane-meta" id="paneMeta" data-i18n="paneContentHere">会话内容会在这里显示</div>
+          </div>
+          <div class="top-actions">
+            <label class="theme-label" for="themeSelect" data-i18n="theme">主题</label>
+            <select id="themeSelect" title="选择界面主题" data-i18n-title="chooseTheme">
+              <option value="light" data-i18n="lightTheme">浅色</option>
+              <option value="dark" data-i18n="darkTheme">深色</option>
+            </select>
+            <div class="font-controls" role="group" aria-label="调整字体大小" data-i18n-aria-label="adjustFontSize">
+              <button type="button" id="fontDecrease" title="减小字体" aria-label="减小字体" data-i18n-title="decreaseFont" data-i18n-aria-label="decreaseFont">A−</button>
+              <output id="fontSizeLabel" aria-live="polite">100%</output>
+              <button type="button" id="fontIncrease" title="增大字体" aria-label="增大字体" data-i18n-title="increaseFont" data-i18n-aria-label="increaseFont">A+</button>
+            </div>
+            <label class="history-label" for="historyLines" data-i18n="history">回滚</label>
+            <select id="historyLines" title="显示历史行数" data-i18n-title="historyTitle">
+              <option value="0" data-i18n="currentScreen">当前屏</option>
+              <option value="200" data-i18n="lines200">200 行</option>
+              <option value="1000" data-i18n="lines1000">1000 行</option>
+              <option value="5000" data-i18n="lines5000">5000 行</option>
+            </select>
+            <button class="secondary-button" id="copyOutput" data-i18n="copy" disabled>复制</button>
+          </div>
+        </header>
+
+        <section class="terminal-wrap" id="terminalWrap">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-glyph">$_</div>
+            <h1 data-i18n="emptyTitle">连接到一个 tmux 窗格</h1>
+            <p data-i18n="emptyDescription">从左侧选择会话，即可查看输出并发送输入。</p>
+          </div>
+          <pre class="terminal" id="terminal" tabindex="0" aria-live="polite" aria-label="终端输出" data-i18n-aria-label="terminalOutput"></pre>
+          <div class="capture-status" id="captureStatus"></div>
+        </section>
+
+        <section class="input-dock" id="inputDock">
+          <div class="quick-keys" aria-label="快捷键" data-i18n-aria-label="quickKeys">
+            <button data-key="C-c">Ctrl+C</button>
+            <button data-key="C-d">Ctrl+D</button>
+            <button data-key="C-z">Ctrl+Z</button>
+            <button data-key="Tab">Tab</button>
+            <button data-key="Escape">Esc</button>
+            <button data-key="Up">↑</button>
+            <button data-key="Down">↓</button>
+            <button data-key="Left">←</button>
+            <button data-key="Right">→</button>
+          </div>
+          <div class="composer">
+            <textarea id="inputText" rows="2" placeholder="向选中的窗格输入…（Enter 发送并回车，Shift+Enter 换行）" data-i18n-placeholder="inputPlaceholder" disabled></textarea>
+            <div class="composer-actions">
+              <button class="secondary-button" id="pasteOnly" data-i18n="pasteOnly" disabled>仅粘贴</button>
+              <button class="primary-button" id="sendInput" data-i18n="send" disabled>发送 ↵</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <dialog id="tokenDialog">
+      <form method="dialog" id="tokenForm">
+        <div class="dialog-mark">›_</div>
+        <h2 data-i18n="tokenTitle">需要访问令牌</h2>
+        <p data-i18n="tokenDescription">服务已启用令牌保护。令牌只保存在当前浏览器标签页中。</p>
+        <label for="tokenInput" data-i18n="tokenLabel">访问令牌</label>
+        <input type="password" id="tokenInput" autocomplete="current-password" required>
+        <div class="dialog-actions">
+          <button class="primary-button" value="submit" data-i18n="connect">连接</button>
+        </div>
+        <div class="dialog-error" id="tokenError"></div>
+      </form>
+    </dialog>
+
+    <dialog id="sessionDialog">
+      <form id="sessionForm">
+        <div class="dialog-mark">›_</div>
+        <h2 id="sessionDialogTitle" data-i18n="createSessionTitle">新建 tmux 会话</h2>
+        <p id="sessionDialogDescription" data-i18n="createSessionDescription">新会话会在后台启动，并立即出现在会话列表中。</p>
+        <label for="sessionNameInput" data-i18n="sessionNameLabel">会话名称</label>
+        <input type="text" id="sessionNameInput" maxlength="64" autocomplete="off" required>
+        <div class="dialog-actions">
+          <button type="button" class="secondary-button" id="sessionCancel" data-i18n="cancel">取消</button>
+          <button type="submit" class="primary-button" id="sessionSubmit" data-i18n="create">创建</button>
+        </div>
+        <div class="dialog-error" id="sessionError"></div>
+      </form>
+    </dialog>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

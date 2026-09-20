@@ -1,0 +1,15 @@
+{
+  "name": "tmux-web-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A small, dependency-free web interface for viewing and typing into local tmux panes.",
+  "scripts": {
+    "start": "node server.js",
+    "start:public": "node server.js --public",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "PolyForm-Noncommercial-1.0.0"
+}
